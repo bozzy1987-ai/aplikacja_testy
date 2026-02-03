@@ -48,3 +48,9 @@ jobs:
     - name: Test Docker image
       run: |
         docker images | grep bike-shop-test
+        
+    - name: Save Docker image
+      run: |
+        docker save bike-shop-test -o /tmp/bike-shop-test.tar
+        echo "Docker image saved to /tmp/bike-shop-test.tar"
+        ls -lh /tmp/bike-shop-test.tar
