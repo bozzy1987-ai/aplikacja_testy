@@ -51,11 +51,10 @@ jobs:
         
     - name: Save Docker image
       run: |
-        WORKDIR=$PWD
         VERSION=$(date +%Y%m%d-%H%M%S)
         mkdir -p ./docker-images
         docker save bike-shop-test -o ./docker-images/bike-shop-test-${VERSION}.tar
-        echo "Docker image saved to: $WORKDIR/docker-images/bike-shop-test-${VERSION}.tar"
-        echo "Current directory: $WORKDIR"
+        echo "Docker image saved to: ./docker-images/bike-shop-test-${VERSION}.tar"
+        echo "Current directory: $(pwd)"
         ls -lh ./docker-images/
         docker images | grep bike-shop-test
