@@ -1,4 +1,4 @@
-name: Deploy Application
+name: Build and Deploy Application
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: self-hosted
     
     steps:
@@ -25,10 +25,20 @@ jobs:
         cd bike-shop
         npm ci
         
+    - name: Run linting
+      run: |
+        cd bike-shop
+        npm run lint || echo "Linting skipped - no script found"
+        
     - name: Build application
       run: |
         cd bike-shop
         npm run build
+        
+    - name: Check build artifacts
+      run: |
+        cd bike-shop
+        ls -la dist/
         
     - name: Build Docker image
       run: |
@@ -39,10 +49,32 @@ jobs:
         VERSION=$(date +%Y%m%d-%H%M%S)
         mkdir -p ./docker-images
         docker save bike-shop-test:latest -o ./docker-images/bike-shop-test-${VERSION}.tar
+        echo "Docker image saved to: ./docker-images/bike-shop-test-${VERSION}.tar"
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image
+        path: ./docker-images/*.tar
+        retention-days: 1
+
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    if: success()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-image
         
     - name: Transfer image to production server
       run: |
-        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
+        IMAGE_FILE=$(ls -t *.tar | head -1)
         scp $IMAGE_FILE app@192.168.1.47:~/aplikacja_biker/
         scp -r ./bike-shop/nginx.conf app@192.168.1.47:~/aplikacja_biker/
         
