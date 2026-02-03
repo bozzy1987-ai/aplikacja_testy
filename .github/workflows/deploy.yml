@@ -44,14 +44,14 @@ jobs:
     - name: Transfer image to production server
       run: |
         IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
-        scp $IMAGE_FILE app@192.168.1.47:/tmp/
-        scp -r ./bike-shop/nginx.conf app@192.168.1.47:/tmp/
+        scp $IMAGE_FILE app@192.168.1.47:~/aplikacja_biker/
+        scp -r ./bike-shop/nginx.conf app@192.168.1.47:~/aplikacja_biker/
         
     - name: Deploy to production server
       run: |
         ssh app@192.168.1.47 "
           # Load Docker image
-          docker load -i /tmp/$(basename $(ls -t /tmp/*.tar | head -1))
+          docker load -i ~/aplikacja_biker/$(basename $(ls -t ~/aplikacja_biker/*.tar | head -1))
           
           # Stop and remove old container
           docker stop bike-shop-container 2>/dev/null || true
@@ -64,7 +64,7 @@ jobs:
             bike-shop-test:latest
             
           # Configure nginx as reverse proxy
-          sudo cp /tmp/nginx.conf /etc/nginx/sites-available/bike-shop
+          sudo cp ~/aplikacja_biker/nginx.conf /etc/nginx/sites-available/bike-shop
           sudo ln -sf /etc/nginx/sites-available/bike-shop /etc/nginx/sites-enabled/
           sudo rm -f /etc/nginx/sites-enabled/default
           sudo nginx -t && sudo systemctl reload nginx
