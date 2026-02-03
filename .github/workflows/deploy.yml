@@ -1,0 +1,85 @@
+name: Deploy Application
+
+on:
+  push:
+    branches: [ runner_test ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: bike-shop/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd bike-shop
+        npm ci
+        
+    - name: Build application
+      run: |
+        cd bike-shop
+        npm run build
+        
+    - name: Build Docker image
+      run: |
+        docker build -t bike-shop-test ./bike-shop
+        
+    - name: Save Docker image
+      run: |
+        VERSION=$(date +%Y%m%d-%H%M%S)
+        mkdir -p ./docker-images
+        docker save bike-shop-test:latest -o ./docker-images/bike-shop-test-${VERSION}.tar
+        
+    - name: Transfer image to production server
+      run: |
+        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
+        scp $IMAGE_FILE app@192.168.1.47:/tmp/
+        scp -r ./bike-shop/nginx.conf app@192.168.1.47:/tmp/
+        
+    - name: Deploy to production server
+      run: |
+        ssh app@192.168.1.47 "
+          # Load Docker image
+          docker load -i /tmp/$(basename $(ls -t /tmp/*.tar | head -1))
+          
+          # Stop and remove old container
+          docker stop bike-shop-container 2>/dev/null || true
+          docker rm bike-shop-container 2>/dev/null || true
+          
+          # Run new container
+          docker run -d \
+            --name bike-shop-container \
+            -p 8080:80 \
+            bike-shop-test:latest
+            
+          # Configure nginx as reverse proxy
+          sudo cp /tmp/nginx.conf /etc/nginx/sites-available/bike-shop
+          sudo ln -sf /etc/nginx/sites-available/bike-shop /etc/nginx/sites-enabled/
+          sudo rm -f /etc/nginx/sites-enabled/default
+          sudo nginx -t && sudo systemctl reload nginx
+        "
+        
+    - name: Verify deployment
+      run: |
+        ssh app@192.168.1.47 "
+          echo '=== Docker containers ==='
+          docker ps | grep bike-shop-container
+          
+          echo '=== Nginx status ==='
+          sudo systemctl status nginx --no-pager
+          
+          echo '=== Test application ==='
+          curl -I http://localhost:80
+          curl -I http://localhost:8080
+        "
