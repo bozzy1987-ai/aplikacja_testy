@@ -52,9 +52,10 @@ jobs:
     - name: Save Docker image
       run: |
         VERSION=$(date +%Y%m%d-%H%M%S)
+        IMAGE_FILE="./docker-images/bike-shop-test-${VERSION}.tar"
+        echo "Saving image to: $IMAGE_FILE"
         mkdir -p ./docker-images
-        docker save bike-shop-test -o ./docker-images/bike-shop-test-${VERSION}.tar
-        echo "Docker image saved to: ./docker-images/bike-shop-test-${VERSION}.tar"
-        echo "Current directory: $(pwd)"
-        ls -lh ./docker-images/
-        docker images | grep bike-shop-test
+        docker save bike-shop-test:latest -o $IMAGE_FILE
+        ls -la ./docker-images/
+        echo "File size:"
+        ls -lh $IMAGE_FILE || echo "ERROR: File not created!"
