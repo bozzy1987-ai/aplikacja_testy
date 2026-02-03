@@ -51,6 +51,8 @@ jobs:
         
     - name: Save Docker image
       run: |
-        docker save bike-shop-test -o /tmp/bike-shop-test.tar
-        echo "Docker image saved to /tmp/bike-shop-test.tar"
-        ls -lh /tmp/bike-shop-test.tar
+        mkdir -p /home/actions-runner/docker-images
+        VERSION=$(date +%Y%m%d-%H%M%S)
+        docker save bike-shop-test -o /home/actions-runner/docker-images/bike-shop-test-${VERSION}.tar
+        echo "Docker image saved to /home/actions-runner/docker-images/bike-shop-test-${VERSION}.tar"
+        ls -lh /home/actions-runner/docker-images/
