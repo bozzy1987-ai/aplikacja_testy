@@ -22,13 +22,21 @@ const bikeData = [
     description: 'Wygodny rower miejski do codziennej jazdy',
     image: 'https://images.unsplash.com/photo-1555963245-2cdd2ab0b46a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
   },
-  {
+{
     id: 3,
     name: 'Szosowy Speed Racer',
     type: 'Szosowy',
     price: '5999 zł',
     description: 'Lekki rower szosowy dla sportowców',
-    image: 'https://images.unsplash.com/photo-1545231027-954a84a27b30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
+    image: 'https://images.unsplash.com/photo-1548618944-d15e6d4e5b1f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 4,
+    name: 'Elektryczny EcoRide Plus',
+    type: 'Elektryczny',
+    price: '7899 zł',
+    description: 'Nowoczesny rower elektryczny z zasięgiem do 100km',
+    image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
