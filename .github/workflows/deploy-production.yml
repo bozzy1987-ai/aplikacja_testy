@@ -1,0 +1,57 @@
+name: Production Deployment Approval
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build and Deploy Application"]
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  deploy-production:
+    runs-on: self-hosted
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-image
+        
+    - name: Transfer image to production server
+      run: |
+        IMAGE_FILE=$(ls -t *.tar | head -1)
+        scp $IMAGE_FILE app@192.168.1.47:~/aplikacja_biker/
+        scp -r ./bike-shop/nginx.conf app@192.168.1.47:~/aplikacja_biker/
+        
+    - name: Deploy to production server
+      run: |
+        IMAGE_FILE=$(ls -t *.tar | head -1)
+        ssh app@192.168.1.47 "
+          # Load Docker image with proper file path
+          docker load -i ~/aplikacja_biker/${IMAGE_FILE}
+          
+          # Stop and remove old container
+          docker stop bike-shop-container 2>/dev/null || true
+          docker rm bike-shop-container 2>/dev/null || true
+          
+          # Run new container
+          docker run -d \
+            --name bike-shop-container \
+            -p 8080:80 \
+            bike-shop-test:latest
+        "
+        
+    - name: Verify deployment
+      run: |
+        ssh app@192.168.1.47 "
+          echo '=== Docker containers ==='
+          docker ps | grep bike-shop-container
+          
+          echo '=== Test application ==='
+          curl -I http://localhost:8080 || echo 'Application not accessible yet'
+        "

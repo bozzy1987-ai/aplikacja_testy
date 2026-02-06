@@ -8,12 +8,12 @@ on:
       environment:
         description: 'Deployment environment'
         required: true
-        default: 'production'
+        default: 'staging'
         type: choice
         options:
         - production
         - staging
-        - stage1
+  workflow_call:
 
 jobs:
   build:
@@ -69,9 +69,9 @@ jobs:
         retention-days: 1
 
   deploy-stage1:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: self-hosted
     needs: build
-    if: success() && (github.event.inputs.environment == 'stage1' || github.event.inputs.environment == 'production')
+    if: success() && github.event.inputs.environment == 'stage1'
     
     steps:
     - name: Checkout code
@@ -119,10 +119,10 @@ jobs:
           curl -I http://localhost:8080 || echo 'Application not accessible yet'
         "
 
-  deploy-production:
+  deploy-staging:
     runs-on: self-hosted
-    needs: deploy-stage1
-    if: success() && (github.event.inputs.environment == 'production' || github.ref == 'refs/heads/main')
+    needs: build
+    if: success() && (github.event.inputs.environment == 'staging' || github.ref == 'refs/heads/main')
     
     steps:
     - name: Checkout code
@@ -133,16 +133,19 @@ jobs:
       with:
         name: docker-image
         
-    - name: Transfer image to production server
+    - name: Transfer image to staging server
       run: |
         IMAGE_FILE=$(ls -t *.tar | head -1)
-        scp $IMAGE_FILE app@192.168.1.47:~/aplikacja_biker/
-        scp -r ./bike-shop/nginx.conf app@192.168.1.47:~/aplikacja_biker/
+        scp $IMAGE_FILE stage1@192.168.1.59:~/aplikacja_biker/
+        scp -r ./bike-shop/nginx.conf stage1@192.168.1.59:~/aplikacja_biker/
         
-    - name: Deploy to production server
+    - name: Deploy to staging server
       run: |
         IMAGE_FILE=$(ls -t *.tar | head -1)
-        ssh app@192.168.1.47 "
+        ssh stage1@192.168.1.59 "
+          # Create directory if not exists
+          mkdir -p ~/aplikacja_biker
+          
           # Load Docker image with proper file path
           docker load -i ~/aplikacja_biker/${IMAGE_FILE}
           
@@ -157,12 +160,14 @@ jobs:
             bike-shop-test:latest
         "
         
-    - name: Configure nginx on production server
+    - name: Verify staging deployment
       run: |
-        ssh app@192.168.1.47 "
-          # Configure nginx as reverse proxy (skip if sudo requires password)
-          cp ~/aplikacja_biker/nginx.conf /tmp/bike-shop-nginx.conf
-          echo 'Nginx config copied to /tmp/bike-shop-nginx.conf - configure manually if needed'
+        ssh stage1@192.168.1.59 "
+          echo '=== Docker containers ==='
+          docker ps | grep bike-shop-container
+          
+          echo '=== Staging app ready at http://192.168.1.59:8080 ==='
+          curl -I http://localhost:8080 || echo 'Application not accessible yet'
         "
         
     - name: Verify deployment
