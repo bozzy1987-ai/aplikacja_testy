@@ -160,6 +160,12 @@ jobs:
             bike-shop-test:latest
         "
         
+    - name: Download artifact for production
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-image
+        path: ./docker-images/
+        
     - name: Upload artifact for production
       uses: actions/upload-artifact@v4
       with:
