@@ -2,16 +2,10 @@ name: Production Deployment Approval
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Build and Deploy Application"]
-    types:
-      - completed
-    branches: [main]
 
 jobs:
   deploy-production:
     runs-on: self-hosted
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     
     steps:
     - name: Checkout code
