@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [ stage ]
     types: [closed]
+    paths-ignore:
+      - '.github/workflows/*'
 
 jobs:
   build:
