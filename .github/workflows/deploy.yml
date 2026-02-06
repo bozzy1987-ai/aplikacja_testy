@@ -68,57 +68,6 @@ jobs:
         path: ./docker-images/*.tar
         retention-days: 1
 
-  deploy-stage1:
-    runs-on: self-hosted
-    needs: build
-    if: success() && github.event.inputs.environment == 'stage1'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: docker-image
-        
-    - name: Transfer image to stage1 server
-      run: |
-        IMAGE_FILE=$(ls -t *.tar | head -1)
-        scp $IMAGE_FILE stage1@192.168.1.59:~/aplikacja_biker/
-        scp -r ./bike-shop/nginx.conf stage1@192.168.1.59:~/aplikacja_biker/
-        
-    - name: Deploy to stage1 server
-      run: |
-        IMAGE_FILE=$(ls -t *.tar | head -1)
-        ssh stage1@192.168.1.59 "
-          # Create directory if not exists
-          mkdir -p ~/aplikacja_biker
-          
-          # Load Docker image with proper file path
-          docker load -i ~/aplikacja_biker/${IMAGE_FILE}
-          
-          # Stop and remove old container
-          docker stop bike-shop-container 2>/dev/null || true
-          docker rm bike-shop-container 2>/dev/null || true
-          
-          # Run new container
-          docker run -d \
-            --name bike-shop-container \
-            -p 8080:80 \
-            bike-shop-test:latest
-        "
-        
-    - name: Verify stage1 deployment
-      run: |
-        ssh stage1@192.168.1.59 "
-          echo '=== Docker containers ==='
-          docker ps | grep bike-shop-container
-          
-          echo '=== Test application ==='
-          curl -I http://localhost:8080 || echo 'Application not accessible yet'
-        "
-
   deploy-staging:
     runs-on: self-hosted
     needs: build
@@ -167,6 +116,64 @@ jobs:
           docker ps | grep bike-shop-container
           
           echo '=== Staging app ready at http://192.168.1.59:8080 ==='
+          curl -I http://localhost:8080 || echo 'Application not accessible yet'
+        "
+
+  deploy-production-ready:
+    runs-on: self-hosted
+    needs: build
+    if: success() && github.event.inputs.environment == 'production'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-image
+        
+    - name: Transfer image to staging server
+      run: |
+        IMAGE_FILE=$(ls -t *.tar | head -1)
+        scp $IMAGE_FILE stage1@192.168.1.59:~/aplikacja_biker/
+        scp -r ./bike-shop/nginx.conf stage1@192.168.1.59:~/aplikacja_biker/
+        
+    - name: Deploy to staging server
+      run: |
+        IMAGE_FILE=$(ls -t *.tar | head -1)
+        ssh stage1@192.168.1.59 "
+          # Create directory if not exists
+          mkdir -p ~/aplikacja_biker
+          
+          # Load Docker image with proper file path
+          docker load -i ~/aplikacja_biker/${IMAGE_FILE}
+          
+          # Stop and remove old container
+          docker stop bike-shop-container 2>/dev/null || true
+          docker rm bike-shop-container 2>/dev/null || true
+          
+          # Run new container
+          docker run -d \
+            --name bike-shop-container \
+            -p 8080:80 \
+            bike-shop-test:latest
+        "
+        
+    - name: Upload artifact for production
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image-production
+        path: ./docker-images/*.tar
+        retention-days: 7
+        
+    - name: Verify staging deployment
+      run: |
+        ssh stage1@192.168.1.59 "
+          echo '=== Docker containers ==='
+          docker ps | grep bike-shop-container
+          
+          echo '=== Staging app ready for production review at http://192.168.1.59:8080 ==='
           curl -I http://localhost:8080 || echo 'Application not accessible yet'
         "
         
