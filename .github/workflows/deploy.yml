@@ -90,12 +90,13 @@ jobs:
         
     - name: Deploy to stage1 server
       run: |
+        IMAGE_FILE=$(ls -t *.tar | head -1)
         ssh stage1@192.168.1.59 "
           # Create directory if not exists
           mkdir -p ~/aplikacja_biker
           
-          # Load Docker image
-          docker load -i ~/aplikacja_biker/$(basename $(ls -t ~/aplikacja_biker/*.tar | head -1))
+          # Load Docker image with proper file path
+          docker load -i ~/aplikacja_biker/${IMAGE_FILE}
           
           # Stop and remove old container
           docker stop bike-shop-container 2>/dev/null || true
