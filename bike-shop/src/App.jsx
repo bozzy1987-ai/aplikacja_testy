@@ -69,6 +69,14 @@ const bikeData = [
     price: '7999 zł',
     description: 'Profesjonalny rower górski z pełnym zawieszeniem - TEST WORKFLOW v2',
     image: 'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 9,
+    name: 'Elektryczna Hulajnoga Speedster',
+    type: 'Hulajnoga',
+    price: '3499 zł',
+    description: 'Szybka hulajnoga elektryczna z zasięgiem 50km',
+    image: 'https://images.unsplash.com/photo-1626697454363-5b6c8820420d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
