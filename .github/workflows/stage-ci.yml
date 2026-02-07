@@ -3,95 +3,76 @@ name: Stage Branch CI/CD
 on:
   push:
     branches: [ stage ]
+    paths:
+      - 'bike-shop/**'
+      - '!bike-shop/node_modules/**'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: self-hosted
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: bike-shop/package-lock.json
-        
-    - name: Install dependencies
+
+    - name: Show commit info
       run: |
-        cd bike-shop
-        npm ci
-        
-    - name: Run linting
-      run: |
-        cd bike-shop
-        npm run lint || echo "Linting skipped - no script found"
-        
-    - name: Build application
-      run: |
-        cd bike-shop
-        npm run build
-        
-    - name: Check build artifacts
-      run: |
-        cd bike-shop
-        ls -la dist/
-        
+        echo "BUILD_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
+        echo "Building commit: $BUILD_COMMIT"
+        echo "Commit message: $(git log -1 --pretty=%B)"
+
     - name: Build Docker image
       run: |
-        docker build -t bike-shop-test ./bike-shop
-        
+        docker build --no-cache -t bike-shop-test ./bike-shop
+
     - name: Save Docker image
       run: |
-        VERSION=$(date +%Y%m%d-%H%M%S)
         mkdir -p ./docker-images
-        docker save bike-shop-test:latest -o ./docker-images/bike-shop-test-${VERSION}.tar
-        echo "Docker image saved to: ./docker-images/bike-shop-test-${VERSION}.tar"
-        
+        docker save bike-shop-test:latest -o ./docker-images/bike-shop-test-${BUILD_COMMIT}.tar
+        echo "ARTIFACT_NAME=docker-image-stage-${BUILD_COMMIT}" >> $GITHUB_ENV
+        echo "Docker image saved to: ./docker-images/bike-shop-test-${BUILD_COMMIT}.tar"
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: docker-image-stage
+        name: ${{ env.ARTIFACT_NAME }}
         path: ./docker-images/*.tar
-        retention-days: 7
+        retention-days: 1
 
   deploy-stage:
     runs-on: self-hosted
     needs: build
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
+    - name: Get commit info
+      id: commit-info
+      run: |
+        echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+        echo "ARTIFACT_NAME=docker-image-stage-$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: docker-image-stage
+        name: ${{ steps.commit-info.outputs.ARTIFACT_NAME }}
         path: ./docker-images/
-        
+
     - name: Transfer image to staging server
       run: |
-        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
+        IMAGE_FILE=$(ls ./docker-images/*.tar)
+        echo "Transferring: $IMAGE_FILE"
         scp $IMAGE_FILE stage1@192.168.1.59:~/aplikacja_biker/
         scp -r ./bike-shop/nginx.conf stage1@192.168.1.59:~/aplikacja_biker/
-        
+
     - name: Deploy to staging server
       run: |
-        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
+        IMAGE_FILE=$(ls ./docker-images/*.tar)
+        echo "Deploying: $IMAGE_FILE"
         ssh stage1@192.168.1.59 "
-          # Create directory if not exists
           mkdir -p ~/aplikacja_biker
-          
-          # Load Docker image with proper file path
-          docker load -i ~/aplikacja_biker/${IMAGE_FILE}
-          
-          # Stop and remove old container
+          docker load -i ~/aplikacja_biker/${IMAGE_FILE##*/}
           docker stop bike-shop-container 2>/dev/null || true
           docker rm bike-shop-container 2>/dev/null || true
-          
-          # Run new container
           docker run -d \
             --name bike-shop-container \
             -p 8080:80 \
