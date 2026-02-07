@@ -2,7 +2,7 @@ name: Build and Deploy Application
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, stage ]
   workflow_dispatch:
     inputs:
       environment:
@@ -71,7 +71,7 @@ jobs:
   deploy-staging:
     runs-on: self-hosted
     needs: build
-    if: success() && (github.event.inputs.environment == 'staging' || github.ref == 'refs/heads/main')
+    if: success() && (github.event.inputs.environment == 'staging' || github.ref == 'refs/heads/stage')
     
     steps:
     - name: Checkout code
