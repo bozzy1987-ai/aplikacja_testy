@@ -131,6 +131,13 @@ const partsData = [
     category: 'Akcesoria',
     price: '69 zł',
     image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 7,
+    name: 'Koszyk rowerowy aluminiowy',
+    category: 'Akcesoria',
+    price: '129 zł',
+    image: 'https://images.unsplash.com/photo-1507035895480-08acdf9b9090?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
