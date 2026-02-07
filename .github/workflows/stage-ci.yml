@@ -11,10 +11,15 @@ on:
 jobs:
   build:
     runs-on: self-hosted
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Show commit info
+      run: |
+        echo "Building commit: $(git rev-parse HEAD)"
+        echo "Commit message: $(git log -1 --pretty=%B)"
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -45,7 +50,7 @@ jobs:
         
     - name: Build Docker image
       run: |
-        docker build -t bike-shop-test ./bike-shop
+        docker build --no-cache -t bike-shop-test ./bike-shop
         
     - name: Save Docker image
       run: |
