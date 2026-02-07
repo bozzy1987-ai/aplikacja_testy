@@ -1,19 +1,11 @@
 name: Stage Branch CI/CD
 
 on:
-  push:
-    branches: [ stage ]
-    paths:
-      - 'bike-shop/**'
-      - '!bike-shop/node_modules/**'
-    types:
-      - pushed
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: self-hosted
-    if: github.event_name == 'push' && github.ref == 'refs/heads/stage' && github.actor != 'github-actions[bot]'
 
     steps:
     - name: Checkout code
