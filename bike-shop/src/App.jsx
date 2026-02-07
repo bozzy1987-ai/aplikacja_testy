@@ -116,6 +116,13 @@ const partsData = [
     category: 'Akcesoria',
     price: '59 zł',
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 6,
+    name: 'Dzwonek różowy dla pań',
+    category: 'Akcesoria',
+    price: '69 zł',
+    image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
