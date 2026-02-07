@@ -29,6 +29,30 @@ const bikeData = [
     price: '5999 zł',
     description: 'Lekki rower szosowy dla sportowców',
     image: 'https://images.unsplash.com/photo-1545231027-954a84a27b30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 4,
+    name: 'Elektryczny e-Bike Pro',
+    type: 'Elektryczny',
+    price: '8999 zł',
+    description: 'Nowoczesny rower elektryczny z dużym zasięgiem',
+    image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 5,
+    name: 'Dziecięcy Fun Rider',
+    type: 'Dziecięcy',
+    price: '1299 zł',
+    description: 'Bezpieczny i kolorowy rower dla najmłodszych',
+    image: 'https://images.unsplash.com/photo-1511994714008-b673b90900b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 6,
+    name: 'BMX Street King',
+    type: 'BMX',
+    price: '2499 zł',
+    description: 'Solidny rower BMX do freestyle i street',
+    image: 'https://images.unsplash.com/photo-1565118531796-763e5082d113?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
