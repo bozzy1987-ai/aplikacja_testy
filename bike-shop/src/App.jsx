@@ -154,6 +154,13 @@ const partsData = [
     category: 'Akcesoria',
     price: '129 zł',
     image: 'https://images.unsplash.com/photo-1507035895480-08acdf9b9090?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 8,
+    name: 'Wrotki fitness Atomic Blades',
+    category: 'Wrotki',
+    price: '699 zł',
+    image: 'https://images.unsplash.com/photo-1565891741441-64926e441838?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
