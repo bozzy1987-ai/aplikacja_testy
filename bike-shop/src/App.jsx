@@ -86,6 +86,14 @@ const bikeData = [
     price: '5599 zł',
     description: 'Solidny rower górski KROSS z amortyzatorem',
     image: 'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 11,
+    name: 'Deskorolka Street Pro',
+    type: 'Deskorolka',
+    price: '799 zł',
+    description: 'Profesjonalna deskorolka do street skatingu',
+    image: 'https://images.unsplash.com/photo-1520045864981-8c7874ed8e39?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
