@@ -3,6 +3,9 @@ name: Stage Branch CI/CD
 on:
   push:
     branches: [ stage ]
+    paths:
+      - 'bike-shop/**'
+      - '!bike-shop/node_modules/**'
 
 jobs:
   build:
