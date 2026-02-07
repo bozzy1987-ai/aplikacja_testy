@@ -13,9 +13,8 @@ jobs:
 
     - name: Show commit info
       run: |
-        echo "BUILD_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
-        echo "Building commit: $BUILD_COMMIT"
-        echo "Commit message: $(git log -1 --pretty=%B)"
+        echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+        echo "Building commit: $COMMIT_SHA"
 
     - name: Build Docker image
       run: |
@@ -24,48 +23,17 @@ jobs:
     - name: Save Docker image
       run: |
         mkdir -p ./docker-images
-        docker save bike-shop-test:latest -o ./docker-images/bike-shop-test-${BUILD_COMMIT}.tar
-        echo "ARTIFACT_NAME=docker-image-stage-${BUILD_COMMIT}" >> $GITHUB_ENV
-        echo "Docker image saved to: ./docker-images/bike-shop-test-${BUILD_COMMIT}.tar"
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.ARTIFACT_NAME }}
-        path: ./docker-images/*.tar
-        retention-days: 1
-
-  deploy-stage:
-    runs-on: self-hosted
-    needs: build
-
-    steps:
-    - name: Get commit info
-      id: commit-info
-      run: |
-        echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-        echo "ARTIFACT_NAME=docker-image-stage-$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ steps.commit-info.outputs.ARTIFACT_NAME }}
-        path: ./docker-images/
+        docker save bike-shop-test:latest -o ./docker-images/bike-shop-test-${COMMIT_SHA}.tar
 
     - name: Transfer image to staging server
       run: |
-        IMAGE_FILE=$(ls ./docker-images/*.tar)
-        echo "Transferring: $IMAGE_FILE"
-        scp $IMAGE_FILE stage1@192.168.1.59:~/aplikacja_biker/
+        scp ./docker-images/bike-shop-test-${COMMIT_SHA}.tar stage1@192.168.1.59:~/aplikacja_biker/
         scp -r ./bike-shop/nginx.conf stage1@192.168.1.59:~/aplikacja_biker/
 
     - name: Deploy to staging server
       run: |
-        IMAGE_FILE=$(ls ./docker-images/*.tar)
-        echo "Deploying: $IMAGE_FILE"
         ssh stage1@192.168.1.59 "
-          mkdir -p ~/aplikacja_biker
-          docker load -i ~/aplikacja_biker/${IMAGE_FILE##*/}
+          docker load -i ~/aplikacja_biker/bike-shop-test-${COMMIT_SHA}.tar
           docker stop bike-shop-container 2>/dev/null || true
           docker rm bike-shop-container 2>/dev/null || true
           docker run -d \
@@ -73,13 +41,11 @@ jobs:
             -p 8080:80 \
             bike-shop-test:latest
         "
-        
+
     - name: Verify staging deployment
       run: |
         ssh stage1@192.168.1.59 "
           echo '=== Docker containers ==='
           docker ps | grep bike-shop-container
-          
           echo '=== Stage deployment ready at http://192.168.1.59:8080 ==='
-          curl -I http://localhost:8080 || echo 'Application not accessible yet'
         "
