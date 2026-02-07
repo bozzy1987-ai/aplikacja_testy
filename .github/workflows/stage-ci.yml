@@ -3,8 +3,9 @@ name: Stage Branch CI/CD
 on:
   push:
     branches: [ stage ]
-    paths-ignore:
-      - '.github/workflows/*'
+    paths:
+      - 'bike-shop/**'
+      - '!bike-shop/node_modules/**'
 
 jobs:
   build:
