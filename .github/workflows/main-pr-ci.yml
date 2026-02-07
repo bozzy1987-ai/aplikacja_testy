@@ -8,9 +8,8 @@ on:
       - '.github/workflows/*'
 
 jobs:
-  build-and-stage:
+  build:
     runs-on: self-hosted
-    if: github.event.action != 'closed' || github.event.pull_request.merged == true
     
     steps:
     - name: Checkout code
@@ -61,60 +60,12 @@ jobs:
         path: ./docker-images/*.tar
         retention-days: 7
 
-  deploy-staging:
+  trigger-production-deploy:
     runs-on: self-hosted
-    needs: build-and-stage
-    if: success() && (github.event.action != 'closed' || github.event.pull_request.merged == true)
-    
+    needs: build
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: docker-image-main-pr
-        path: ./docker-images/
-        
-    - name: Transfer image to staging server
-      run: |
-        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
-        scp $IMAGE_FILE stage1@192.168.1.59:~/aplikacja_biker/
-        scp -r ./bike-shop/nginx.conf stage1@192.168.1.59:~/aplikacja_biker/
-        
-    - name: Deploy to staging server
-      run: |
-        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
-        ssh stage1@192.168.1.59 "
-          # Create directory if not exists
-          mkdir -p ~/aplikacja_biker
-          
-          # Load Docker image with proper file path
-          docker load -i ~/aplikacja_biker/${IMAGE_FILE}
-          
-          # Stop and remove old container
-          docker stop bike-shop-container 2>/dev/null || true
-          docker rm bike-shop-container 2>/dev/null || true
-          
-          # Run new container
-          docker run -d \
-            --name bike-shop-container \
-            -p 8080:80 \
-            bike-shop-test:latest
-        "
-        
-    - name: Verify staging deployment
-      run: |
-        ssh stage1@192.168.1.59 "
-          echo '=== Docker containers ==='
-          docker ps | grep bike-shop-container
-          
-          echo '=== PR staging ready at http://192.168.1.59:8080 ==='
-          curl -I http://localhost:8080 || echo 'Application not accessible yet'
-        "
-        
-    - name: Notify ready for production
-      if: github.event.action == 'closed' && github.event.pull_request.merged == true
-      run: |
-        echo "PR merged and deployed to staging - ready for production deployment!"
-        echo "Run 'Production Deployment' workflow to deploy to main."
+      - name: Trigger production workflow
+        run: |
+          echo "PR merged! Production deployment will start automatically."
+          echo "Check 'Main Branch Production Deployment' workflow."
