@@ -6,11 +6,14 @@ on:
     paths:
       - 'bike-shop/**'
       - '!bike-shop/node_modules/**'
+    types:
+      - pushed
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: self-hosted
+    if: github.event_name == 'push' && github.ref == 'refs/heads/stage'
 
     steps:
     - name: Checkout code
