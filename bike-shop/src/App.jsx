@@ -78,6 +78,14 @@ const bikeData = [
     price: '3499 zł',
     description: 'Szybka hulajnoga elektryczna z zasięgiem 50km',
     image: 'https://images.unsplash.com/photo-1626697454363-5b6c8820420d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 10,
+    name: 'KROSS Level B2',
+    type: 'Górski',
+    price: '5599 zł',
+    description: 'Solidny rower górski KROSS z amortyzatorem',
+    image: 'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
