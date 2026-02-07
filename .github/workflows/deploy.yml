@@ -119,80 +119,45 @@ jobs:
           curl -I http://localhost:8080 || echo 'Application not accessible yet'
         "
 
-  deploy-production-ready:
+  deploy-production:
     runs-on: self-hosted
     needs: build
-    if: success() && github.event.inputs.environment == 'production'
+    if: success() && (github.event.inputs.environment == 'production' || github.ref == 'refs/heads/main')
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: docker-image
-        
-    - name: Transfer image to staging server
+
+    - name: Transfer image to production server
       run: |
         IMAGE_FILE=$(ls -t *.tar | head -1)
-        scp $IMAGE_FILE stage1@192.168.1.59:~/aplikacja_biker/
-        scp -r ./bike-shop/nginx.conf stage1@192.168.1.59:~/aplikacja_biker/
-        
-    - name: Deploy to staging server
+        scp $IMAGE_FILE app@192.168.1.47:~/aplikacja_biker/
+        scp -r ./bike-shop/nginx.conf app@192.168.1.47:~/aplikacja_biker/
+
+    - name: Deploy to production server
       run: |
         IMAGE_FILE=$(ls -t *.tar | head -1)
-        ssh stage1@192.168.1.59 "
-          # Create directory if not exists
+        ssh app@192.168.1.47 "
           mkdir -p ~/aplikacja_biker
-          
-          # Load Docker image with proper file path
           docker load -i ~/aplikacja_biker/${IMAGE_FILE}
-          
-          # Stop and remove old container
           docker stop bike-shop-container 2>/dev/null || true
           docker rm bike-shop-container 2>/dev/null || true
-          
-          # Run new container
           docker run -d \
             --name bike-shop-container \
             -p 8080:80 \
             bike-shop-test:latest
         "
-        
-    - name: Download artifact for production
-      uses: actions/download-artifact@v4
-      with:
-        name: docker-image
-        path: ./docker-images/
-        
-    - name: Upload artifact for production
-      uses: actions/upload-artifact@v4
-      with:
-        name: docker-image-production
-        path: ./docker-images/*.tar
-        retention-days: 7
-        
-    - name: Verify staging deployment
-      run: |
-        ssh stage1@192.168.1.59 "
-          echo '=== Docker containers ==='
-          docker ps | grep bike-shop-container
-          
-          echo '=== Staging app ready for production review at http://192.168.1.59:8080 ==='
-          curl -I http://localhost:8080 || echo 'Application not accessible yet'
-        "
-        
-    - name: Verify deployment
+
+    - name: Verify production deployment
       run: |
         ssh app@192.168.1.47 "
           echo '=== Docker containers ==='
           docker ps | grep bike-shop-container
-          
-          echo '=== Nginx status ==='
-          sudo systemctl status nginx --no-pager
-          
-          echo '=== Test application ==='
-          curl -I http://localhost:80
-          curl -I http://localhost:8080
+          echo '=== Production app ready at http://192.168.1.47 ==='
+          curl -I http://localhost:8080 || echo 'Application not accessible'
         "

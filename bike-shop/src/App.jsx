@@ -53,6 +53,22 @@ const bikeData = [
     price: '2499 zł',
     description: 'Solidny rower BMX do freestyle i street',
     image: 'https://images.unsplash.com/photo-1565118531796-763e5082d113?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 7,
+    name: 'Tandem Love Story',
+    type: 'Tandem',
+    price: '5499 zł',
+    description: 'Rower tandemowy dla par, idealny na wspólne wycieczki',
+    image: 'https://images.unsplash.com/photo-1507035895480-08acdf9b9090?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 8,
+    name: 'Górski Extreme 3000',
+    type: 'Górski',
+    price: '7999 zł',
+    description: 'Profesjonalny rower górski z pełnym zawieszeniem',
+    image: 'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
