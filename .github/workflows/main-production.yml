@@ -1,58 +1,72 @@
 name: Main Branch Production Deployment
 
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'bike-shop/**'
+      - '!bike-shop/node_modules/**'
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Main Branch PR CI/CD"]
-    types:
-      - completed
-    branches: [main]
 
 jobs:
-  deploy-production:
+  build-and-deploy:
     runs-on: self-hosted
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: docker-image-main-pr
-        path: ./docker-images/
-        
-    - name: Transfer image to production server
+
+    - name: Show commit info
       run: |
-        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
-        scp $IMAGE_FILE app@192.168.1.47:~/aplikacja_biker/
-        scp -r ./bike-shop/nginx.conf app@192.168.1.47:~/aplikacja_biker/
-        
+        echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+        echo "Building and deploying commit: $COMMIT_SHA"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: bike-shop/package-lock.json
+
+    - name: Install dependencies
+      run: |
+        cd bike-shop
+        npm ci
+
+    - name: Build application
+      run: |
+        cd bike-shop
+        npm run build
+
+    - name: Build Docker image
+      run: |
+        docker build --no-cache -t bike-shop-test ./bike-shop
+
+    - name: Save Docker image
+      run: |
+        docker save bike-shop-test:latest -o ./docker-images/bike-shop-test-${COMMIT_SHA}.tar
+
     - name: Deploy to production server
       run: |
-        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
+        scp ./docker-images/bike-shop-test-${COMMIT_SHA}.tar app@192.168.1.47:~/aplikacja_biker/
+        scp -r ./bike-shop/nginx.conf app@192.168.1.47:~/aplikacja_biker/
+
+    - name: Run production container
+      run: |
         ssh app@192.168.1.47 "
-          # Load Docker image with proper file path
-          docker load -i ~/aplikacja_biker/${IMAGE_FILE}
-          
-          # Stop and remove old container
+          docker load -i ~/aplikacja_biker/bike-shop-test-${COMMIT_SHA}.tar
           docker stop bike-shop-container 2>/dev/null || true
           docker rm bike-shop-container 2>/dev/null || true
-          
-          # Run new container
           docker run -d \
             --name bike-shop-container \
             -p 8080:80 \
             bike-shop-test:latest
         "
-        
+
     - name: Verify production deployment
       run: |
         ssh app@192.168.1.47 "
           echo '=== Docker containers ==='
           docker ps | grep bike-shop-container
-          
           echo '=== Production app ready at http://192.168.1.47:8080 ==='
-          curl -I http://localhost:8080 || echo 'Application not accessible yet'
         "
