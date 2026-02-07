@@ -3,16 +3,10 @@ name: Stage Branch CI/CD
 on:
   push:
     branches: [ stage ]
-  pull_request:
-    branches: [ stage ]
-    types: [closed]
-    paths-ignore:
-      - '.github/workflows/*'
 
 jobs:
   build:
     runs-on: self-hosted
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
     
     steps:
     - name: Checkout code
@@ -66,7 +60,6 @@ jobs:
   deploy-stage:
     runs-on: self-hosted
     needs: build
-    if: success() && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true))
     
     steps:
     - name: Checkout code

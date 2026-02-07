@@ -67,7 +67,7 @@ const bikeData = [
     name: 'Górski Extreme 3000',
     type: 'Górski',
     price: '7999 zł',
-    description: 'Profesjonalny rower górski z pełnym zawieszeniem - TEST OK',
+    description: 'Profesjonalny rower górski z pełnym zawieszeniem - TEST WORKFLOW v2',
     image: 'https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
