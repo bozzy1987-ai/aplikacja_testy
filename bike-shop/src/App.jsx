@@ -102,6 +102,20 @@ const partsData = [
     category: 'Akcesoria',
     price: '79 zł',
     image: 'https://images.unsplash.com/photo-1555963245-2cdd2ab0b46a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 4,
+    name: 'Przerzutka tylna Shimano XT',
+    category: 'Napęd',
+    price: '449 zł',
+    image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 5,
+    name: 'Dzwonek klasyczny chromowany',
+    category: 'Akcesoria',
+    price: '59 zł',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
