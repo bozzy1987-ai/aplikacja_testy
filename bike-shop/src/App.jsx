@@ -94,6 +94,14 @@ const bikeData = [
     price: '799 zł',
     description: 'Profesjonalna deskorolka do street skatingu',
     image: 'https://images.unsplash.com/photo-1520045864981-8c7874ed8e39?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    id: 12,
+    name: 'Rolki dziecięce Pink Roller',
+    type: 'Rolki',
+    price: '459 zł',
+    description: 'Kolorowe rolki dla dzieci z regulowanym rozmiarem',
+    image: 'https://images.unsplash.com/photo-1565891741441-64926e441838?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 
