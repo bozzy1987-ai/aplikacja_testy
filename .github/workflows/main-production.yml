@@ -1,11 +1,17 @@
-name: Production Deployment Approval
+name: Main Branch Production Deployment
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Main Branch PR CI/CD"]
+    types:
+      - completed
+    branches: [main]
 
 jobs:
   deploy-production:
     runs-on: self-hosted
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     
     steps:
     - name: Checkout code
@@ -14,17 +20,18 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: docker-image-production
+        name: docker-image-main-pr
+        path: ./docker-images/
         
     - name: Transfer image to production server
       run: |
-        IMAGE_FILE=$(ls -t *.tar | head -1)
+        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
         scp $IMAGE_FILE app@192.168.1.47:~/aplikacja_biker/
         scp -r ./bike-shop/nginx.conf app@192.168.1.47:~/aplikacja_biker/
         
     - name: Deploy to production server
       run: |
-        IMAGE_FILE=$(ls -t *.tar | head -1)
+        IMAGE_FILE=$(ls -t ./docker-images/*.tar | head -1)
         ssh app@192.168.1.47 "
           # Load Docker image with proper file path
           docker load -i ~/aplikacja_biker/${IMAGE_FILE}
@@ -40,12 +47,12 @@ jobs:
             bike-shop-test:latest
         "
         
-    - name: Verify deployment
+    - name: Verify production deployment
       run: |
         ssh app@192.168.1.47 "
           echo '=== Docker containers ==='
           docker ps | grep bike-shop-container
           
-          echo '=== Test application ==='
+          echo '=== Production app ready at http://192.168.1.47:8080 ==='
           curl -I http://localhost:8080 || echo 'Application not accessible yet'
         "
